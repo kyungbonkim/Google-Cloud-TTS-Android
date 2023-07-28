@@ -1,14 +1,16 @@
 package darren.googlecloudtts;
 
 import android.media.MediaPlayer;
+
 import java.io.IOException;
+
 import darren.googlecloudtts.api.SynthesizeApi;
 import darren.googlecloudtts.api.VoicesApi;
+import darren.googlecloudtts.exception.ApiException;
 import darren.googlecloudtts.model.VoicesList;
 import darren.googlecloudtts.parameter.AudioConfig;
-import darren.googlecloudtts.exception.ApiException;
-import darren.googlecloudtts.parameter.VoiceSelectionParams;
 import darren.googlecloudtts.parameter.SynthesisInput;
+import darren.googlecloudtts.parameter.VoiceSelectionParams;
 import darren.googlecloudtts.request.SynthesizeRequest;
 import darren.googlecloudtts.response.SynthesizeResponse;
 import darren.googlecloudtts.response.VoicesResponse;
@@ -117,5 +119,24 @@ public class GoogleCloudTTS implements AutoCloseable {
         stop();
         mMediaPlayer.release();
         mMediaPlayer = null;
+    }
+
+    public String getUrl(String text) {
+        if (mVoiceSelectionParams == null) {
+            throw new NullPointerException("You forget to setVoiceSelectionParams()");
+        }
+
+        if (mAudioConfig == null) {
+            throw new NullPointerException("You forget to setAudioConfig()");
+        }
+
+        SynthesizeRequest request = new SynthesizeRequest(new SynthesisInput(text), mVoiceSelectionParams, mAudioConfig);
+
+        try {
+            SynthesizeResponse response = mSynthesizeApi.get(request);
+            return "data:audio/mp3;base64," + response.getAudioContent();
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
